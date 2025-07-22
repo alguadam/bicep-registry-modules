@@ -58,7 +58,7 @@ param backendContainerRegistryHostname string = 'biabcontainerreg.azurecr.io'
 param backendContainerImageName string = 'macaebackend'
 
 @description('Optional. The Container Image Tag to deploy on the backend.')
-param backendContainerImageTag string = 'hotfix_2025-06-17_704'
+param backendContainerImageTag string = 'latest_2025-07-22_895'
 
 @description('Optional. The Container Registry hostname where the docker images for the frontend are located.')
 param frontendContainerRegistryHostname string = 'biabcontainerreg.azurecr.io'
@@ -67,7 +67,7 @@ param frontendContainerRegistryHostname string = 'biabcontainerreg.azurecr.io'
 param frontendContainerImageName string = 'macaefrontend'
 
 @description('Optional. The Container Image Tag to deploy on the frontend.')
-param frontendContainerImageTag string = 'hotfix_2025-06-17_704'
+param frontendContainerImageTag string = 'latest_2025-07-22_895'
 
 @description('Optional. Enable/Disable usage telemetry for module.')
 param enableTelemetry bool = true
