@@ -685,12 +685,13 @@ module proximityPlacementGroup 'br/public:avm/res/compute/proximity-placement-gr
     location: solutionLocation
     tags: tags
     enableTelemetry: enableTelemetry
-    availabilityZone: 1
+    availabilityZone: virtualMachineAvailabilityZone
     intent: { vmSizes: [virtualMachineSize] }
   }
 }
 
 var virtualMachineResourceName = '${solutionPrefix}wvm'
+var virtualMachineAvailabilityZone = 1
 var virtualMachineSize = 'Standard_D2s_v3'
 module virtualMachine 'br/public:avm/res/compute/virtual-machine:0.16.0' = if (enablePrivateNetworking) {
   name: take('avm.res.compute.virtual-machine.${virtualMachineResourceName}', 64)
@@ -709,7 +710,7 @@ module virtualMachine 'br/public:avm/res/compute/virtual-machine:0.16.0' = if (e
     maintenanceConfigurationResourceId: maintenanceConfiguration!.outputs.resourceId
     enableAutomaticUpdates: true
     encryptionAtHost: false
-    availabilityZone: 2
+    availabilityZone: virtualMachineAvailabilityZone
     proximityPlacementGroupResourceId: proximityPlacementGroup!.outputs.resourceId
     imageReference: {
       publisher: 'microsoft-dsvm'
