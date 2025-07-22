@@ -292,7 +292,7 @@ resource cMKUserAssignedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentiti
   )
 }
 
-resource cognitiveService 'Microsoft.CognitiveServices/accounts@2025-04-01-preview' = {
+resource cognitiveService 'Microsoft.CognitiveServices/accounts@2025-06-01' = {
   name: name
   kind: kind
   identity: identity
@@ -333,13 +333,13 @@ resource cognitiveService 'Microsoft.CognitiveServices/accounts@2025-04-01-previ
           keySource: 'Microsoft.KeyVault'
           keyVaultProperties: {
             identityClientId: !empty(customerManagedKey.?userAssignedIdentityResourceId ?? '')
-              ? cMKUserAssignedIdentity.properties.clientId
+              ? cMKUserAssignedIdentity!.properties.clientId
               : null
-            keyVaultUri: cMKKeyVault.properties.vaultUri
+            keyVaultUri: cMKKeyVault!.properties.vaultUri
             keyName: customerManagedKey!.keyName
             keyVersion: !empty(customerManagedKey.?keyVersion ?? '')
               ? customerManagedKey!.?keyVersion
-              : last(split(cMKKeyVault::cMKKey.properties.keyUriWithVersion, '/'))
+              : last(split(cMKKeyVault::cMKKey!.properties.keyUriWithVersion, '/'))
           }
         }
       : null
@@ -371,7 +371,7 @@ resource cognitiveService_deployments 'Microsoft.CognitiveServices/accounts/depl
   }
 ]
 
-resource aiFoundryProject 'Microsoft.CognitiveServices/accounts/projects@2025-04-01-preview' = {
+resource aiFoundryProject 'Microsoft.CognitiveServices/accounts/projects@2025-06-01' = {
   parent: cognitiveService
   name: projectName
   tags: tags

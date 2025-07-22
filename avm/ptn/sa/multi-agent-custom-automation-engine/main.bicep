@@ -124,6 +124,7 @@ module logAnalyticsWorkspace 'br/public:avm/res/operational-insights/workspace:0
     dataSources: enablePrivateNetworking
       ? [
           {
+            tags: tags
             eventLogName: 'Application'
             eventTypes: [
               {
@@ -173,8 +174,8 @@ module applicationInsights 'br/public:avm/res/insights/component:0.6.0' = if (en
     disableIpMasking: false
     flowType: 'Bluefield'
     // WAF aligned configuration for Monitoring
-    workspaceResourceId: enableMonitoring ? logAnalyticsWorkspace.outputs.resourceId : ''
-    diagnosticSettings: enableMonitoring ? [{ workspaceResourceId: logAnalyticsWorkspace.outputs.resourceId }] : null
+    workspaceResourceId: enableMonitoring ? logAnalyticsWorkspace!.outputs.resourceId : ''
+    diagnosticSettings: enableMonitoring ? [{ workspaceResourceId: logAnalyticsWorkspace!.outputs.resourceId }] : null
   }
 }
 
@@ -192,7 +193,7 @@ module networkSecurityGroupBackend 'br/public:avm/res/network/network-security-g
     location: solutionLocation
     tags: tags
     enableTelemetry: enableTelemetry
-    diagnosticSettings: enableMonitoring ? [{ workspaceResourceId: logAnalyticsWorkspace.outputs.resourceId }] : null
+    diagnosticSettings: enableMonitoring ? [{ workspaceResourceId: logAnalyticsWorkspace!.outputs.resourceId }] : null
     securityRules: [
       {
         name: 'deny-hop-outbound'
@@ -378,7 +379,7 @@ module networkSecurityGroupAdministration 'br/public:avm/res/network/network-sec
     location: solutionLocation
     tags: tags
     enableTelemetry: enableTelemetry
-    diagnosticSettings: enableMonitoring ? [{ workspaceResourceId: logAnalyticsWorkspace.outputs.resourceId }] : null
+    diagnosticSettings: enableMonitoring ? [{ workspaceResourceId: logAnalyticsWorkspace!.outputs.resourceId }] : null
     securityRules: [
       {
         name: 'deny-hop-outbound'
@@ -408,7 +409,7 @@ module networkSecurityGroupContainers 'br/public:avm/res/network/network-securit
     location: solutionLocation
     tags: tags
     enableTelemetry: enableTelemetry
-    diagnosticSettings: enableMonitoring ? [{ workspaceResourceId: logAnalyticsWorkspace.outputs.resourceId }] : null
+    diagnosticSettings: enableMonitoring ? [{ workspaceResourceId: logAnalyticsWorkspace!.outputs.resourceId }] : null
     securityRules: [
       {
         name: 'deny-hop-outbound'
@@ -540,8 +541,7 @@ module bastionHost 'br/public:avm/res/network/bastion-host:0.7.0' = if (enablePr
     enableIpConnect: false
     enableShareableLink: false
     scaleUnits: 4
-    //scaleUnits: bastionConfiguration.?scaleUnits
-    diagnosticSettings: enableMonitoring ? [{ workspaceResourceId: logAnalyticsWorkspace.outputs.resourceId }] : null
+    diagnosticSettings: enableMonitoring ? [{ workspaceResourceId: logAnalyticsWorkspace!.outputs.resourceId }] : null
   }
 }
 
@@ -656,7 +656,7 @@ module windowsVmDataCollectionRules 'br/public:avm/res/insights/data-collection-
       destinations: {
         logAnalytics: [
           {
-            workspaceResourceId: logAnalyticsWorkspace.outputs.resourceId
+            workspaceResourceId: logAnalyticsWorkspace!.outputs.resourceId
             name: 'la--1264800308'
           }
         ]
@@ -686,10 +686,12 @@ module proximityPlacementGroup 'br/public:avm/res/compute/proximity-placement-gr
     tags: tags
     enableTelemetry: enableTelemetry
     availabilityZone: 1
+    intent: { vmSizes: [virtualMachineSize] }
   }
 }
 
 var virtualMachineResourceName = '${solutionPrefix}wvm'
+var virtualMachineSize = 'Standard_D2s_v3'
 module virtualMachine 'br/public:avm/res/compute/virtual-machine:0.16.0' = if (enablePrivateNetworking) {
   name: take('avm.res.compute.virtual-machine.${virtualMachineResourceName}', 64)
   params: {
@@ -699,7 +701,7 @@ module virtualMachine 'br/public:avm/res/compute/virtual-machine:0.16.0' = if (e
     enableTelemetry: enableTelemetry
     computerName: take(virtualMachineResourceName, 15)
     osType: 'Windows'
-    vmSize: 'Standard_D2s_v3'
+    vmSize: virtualMachineSize
     adminUsername: virtualMachineAdminUsername
     adminPassword: virtualMachineAdminPassword
     patchMode: 'AutomaticByPlatform'
@@ -731,7 +733,7 @@ module virtualMachine 'br/public:avm/res/compute/virtual-machine:0.16.0' = if (e
         tags: tags
         deleteOption: 'Delete'
         diagnosticSettings: enableMonitoring //WAF aligned configuration for Monitoring
-          ? [{ workspaceResourceId: logAnalyticsWorkspace.outputs.resourceId }]
+          ? [{ workspaceResourceId: logAnalyticsWorkspace!.outputs.resourceId }]
           : null
         ipConfigurations: [
           {
@@ -769,7 +771,7 @@ module virtualMachine 'br/public:avm/res/compute/virtual-machine:0.16.0' = if (e
       ? {
           dataCollectionRuleAssociations: [
             {
-              dataCollectionRuleResourceId: windowsVmDataCollectionRules.outputs.resourceId
+              dataCollectionRuleResourceId: windowsVmDataCollectionRules!.outputs.resourceId
               name: 'send-${logAnalyticsWorkspace!.outputs.name}'
             }
           ]
@@ -851,7 +853,7 @@ module aiFoundryAiServices 'modules/ai-services.bicep' = if (aiFoundryAIservices
     }
     managedIdentities: { systemAssigned: true }
     // WAF aligned configuration for Monitoring
-    diagnosticSettings: enableMonitoring ? [{ workspaceResourceId: logAnalyticsWorkspace.outputs.resourceId }] : null
+    diagnosticSettings: enableMonitoring ? [{ workspaceResourceId: logAnalyticsWorkspace!.outputs.resourceId }] : null
     publicNetworkAccess: enablePrivateNetworking ? 'Disabled' : 'Enabled'
     privateEndpoints: enablePrivateNetworking
       ? ([
@@ -970,7 +972,7 @@ module privateDnsZonesCosmosDb 'br/public:avm/res/network/private-dns-zone:0.7.1
     virtualNetworkLinks: [
       {
         name: take('vnetlink-${virtualNetworkResourceName}-documents', 80)
-        virtualNetworkResourceId: virtualNetwork.outputs.resourceId
+        virtualNetworkResourceId: virtualNetwork!.outputs.resourceId
       }
     ]
     tags: tags
@@ -1018,7 +1020,7 @@ module cosmosDb 'br/public:avm/res/document-db/database-account:0.15.0' = {
       }
     ]
     // WAF aligned configuration for Monitoring
-    diagnosticSettings: enableMonitoring ? [{ workspaceResourceId: logAnalyticsWorkspace.outputs.resourceId }] : null
+    diagnosticSettings: enableMonitoring ? [{ workspaceResourceId: logAnalyticsWorkspace!.outputs.resourceId }] : null
     // WAF aligned configuration for Private Networking
     networkRestrictions: {
       networkAclBypass: 'None'
@@ -1033,7 +1035,7 @@ module cosmosDb 'br/public:avm/res/document-db/database-account:0.15.0' = {
               privateDnsZoneGroupConfigs: [{ privateDnsZoneResourceId: privateDnsZonesCosmosDb!.outputs.resourceId }]
             }
             service: 'Sql'
-            subnetResourceId: virtualNetwork.outputs.subnetResourceIds[0]
+            subnetResourceId: virtualNetwork!.outputs.subnetResourceIds[0]
           }
         ]
       : []
@@ -1243,11 +1245,11 @@ module containerApp 'br/public:avm/res/app/container-app:0.18.1' = {
           }
           {
             name: 'APPLICATIONINSIGHTS_INSTRUMENTATION_KEY'
-            value: enableMonitoring ? applicationInsights.outputs.instrumentationKey : ''
+            value: enableMonitoring ? applicationInsights!.outputs.instrumentationKey : ''
           }
           {
             name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
-            value: enableMonitoring ? applicationInsights.outputs.connectionString : ''
+            value: enableMonitoring ? applicationInsights!.outputs.connectionString : ''
           }
           {
             name: 'AZURE_AI_SUBSCRIPTION_ID'
@@ -1293,7 +1295,7 @@ module webServerFarm 'br/public:avm/res/web/serverfarm:0.4.1' = {
     reserved: true
     kind: 'linux'
     // WAF aligned configuration for Monitoring
-    diagnosticSettings: enableMonitoring ? [{ workspaceResourceId: logAnalyticsWorkspace.outputs.resourceId }] : null
+    diagnosticSettings: enableMonitoring ? [{ workspaceResourceId: logAnalyticsWorkspace!.outputs.resourceId }] : null
     // WAF aligned configuration for Scalability
     skuName: enableScalability || enableRedundancy ? 'P1v3' : 'B3'
     skuCapacity: enableScalability ? 3 : 1
