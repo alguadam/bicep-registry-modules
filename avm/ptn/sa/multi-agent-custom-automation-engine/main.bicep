@@ -1112,6 +1112,7 @@ module containerAppEnvironment 'br/public:avm/res/app/managed-environment:0.11.2
         ]
   }
 }
+
 // Private DNS Zone Group for Container App Environment Private Endpoint
 module privateDnsZonesContainerAppEnvironment 'br/public:avm/res/network/private-dns-zone:0.7.1' = if (enablePrivateNetworking) {
   name: take('avm.res.network.private-dns-zone.app-environment.${solutionPrefix}', 64)
