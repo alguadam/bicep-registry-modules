@@ -1,3 +1,3 @@
 using 'main.bicep'
 
-param solutionPrefix = 'macaesbx01'
+param solutionPrefix = 'macaesbx02'

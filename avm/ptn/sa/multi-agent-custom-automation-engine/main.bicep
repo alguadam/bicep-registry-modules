@@ -179,8 +179,18 @@ module applicationInsights 'br/public:avm/res/insights/component:0.6.0' = if (en
   }
 }
 
-// ========== User assigned identity Web Site ========== //
+// ========== User Assigned Identity ========== //
 // WAF best practices for identity and access management: https://learn.microsoft.com/en-us/azure/well-architected/security/identity-access
+var userAssignedIdentityResourceName = '${solutionPrefix}-uai'
+module userAssignedIdentity 'br/public:avm/res/managed-identity/user-assigned-identity:0.4.1' = {
+  name: take('avm.res.managed-identity.user-assigned-identity.${userAssignedIdentityResourceName}', 64)
+  params: {
+    name: userAssignedIdentityResourceName
+    location: solutionLocation
+    tags: tags
+    enableTelemetry: enableTelemetry
+  }
+}
 
 // ========== Network Security Groups ========== //
 // WAF best practices for virtual networks: https://learn.microsoft.com/en-us/azure/well-architected/service-guides/virtual-network
@@ -693,7 +703,7 @@ module proximityPlacementGroup 'br/public:avm/res/compute/proximity-placement-gr
 var virtualMachineResourceName = '${solutionPrefix}wvm'
 var virtualMachineAvailabilityZone = 1
 var virtualMachineSize = 'Standard_D2s_v3'
-module virtualMachine 'br/public:avm/res/compute/virtual-machine:0.16.0' = if (enablePrivateNetworking) {
+module virtualMachine 'br/public:avm/res/compute/virtual-machine:0.17.0' = if (enablePrivateNetworking) {
   name: take('avm.res.compute.virtual-machine.${virtualMachineResourceName}', 64)
   params: {
     name: virtualMachineResourceName
@@ -832,6 +842,7 @@ var aiFoundryAiServicesModelDeployment = {
   raiPolicyName: 'Microsoft.Default'
 }
 
+//TODO: update to AVM module when AI Projects and AI Projects RBAC are supported
 module aiFoundryAiServices 'modules/ai-services.bicep' = if (aiFoundryAIservicesEnabled) {
   name: take('avm.res.cognitive-services.account.${aiFoundryAiServicesResourceName}', 64)
   params: {
@@ -852,7 +863,24 @@ module aiFoundryAiServices 'modules/ai-services.bicep' = if (aiFoundryAIservices
       virtualNetworkRules: []
       ipRules: []
     }
-    managedIdentities: { systemAssigned: true }
+    managedIdentities: { userAssignedResourceIds: [userAssignedIdentity!.outputs.resourceId] } //To create accounts or projects, you must enable a managed identity on your resource
+    roleAssignments: [
+      {
+        roleDefinitionIdOrName: '53ca6127-db72-4b80-b1b0-d745d6d5456d' // Azure AI User
+        principalId: userAssignedIdentity.outputs.principalId
+        principalType: 'ServicePrincipal'
+      }
+      {
+        roleDefinitionIdOrName: '64702f94-c441-49e6-a78b-ef80e0188fee' // Azure AI Developer
+        principalId: userAssignedIdentity.outputs.principalId
+        principalType: 'ServicePrincipal'
+      }
+      {
+        roleDefinitionIdOrName: '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd' // Cognitive Services OpenAI User
+        principalId: userAssignedIdentity.outputs.principalId
+        principalType: 'ServicePrincipal'
+      }
+    ]
     // WAF aligned configuration for Monitoring
     diagnosticSettings: enableMonitoring ? [{ workspaceResourceId: logAnalyticsWorkspace!.outputs.resourceId }] : null
     publicNetworkAccess: enablePrivateNetworking ? 'Disabled' : 'Enabled'
@@ -890,41 +918,41 @@ module aiFoundryAiServices 'modules/ai-services.bicep' = if (aiFoundryAIservices
 }
 
 //Role assignments for AI Foundry
-module resourceRoleAssignmentAiServicesAiUser 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.2' = {
-  name: 'avm.ptn.authorization.resource-role-assignment.${uniqueString(aiFoundryAiServicesResourceName,containerAppResourceName,'Azure AI User')}'
-  params: {
-    roleName: 'Azure AI User'
-    roleDefinitionId: '53ca6127-db72-4b80-b1b0-d745d6d5456d'
-    principalId: containerApp.outputs.systemAssignedMIPrincipalId!
-    principalType: 'ServicePrincipal'
-    resourceId: aiFoundryAiServices.outputs.resourceId
-    enableTelemetry: enableTelemetry
-  }
-}
+// module resourceRoleAssignmentAiServicesAiUser 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.2' = {
+//   name: 'avm.ptn.authorization.resource-role-assignment.${uniqueString(aiFoundryAiServicesResourceName,containerAppResourceName,'Azure AI User')}'
+//   params: {
+//     roleName: 'Azure AI User'
+//     roleDefinitionId: '53ca6127-db72-4b80-b1b0-d745d6d5456d'
+//     principalId: containerApp.outputs.systemAssignedMIPrincipalId!
+//     principalType: 'ServicePrincipal'
+//     resourceId: aiFoundryAiServices.outputs.resourceId
+//     enableTelemetry: enableTelemetry
+//   }
+// }
 
-module resourceRoleAssignmentAiServicesAiDeveloper 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.2' = {
-  name: 'avm.ptn.authorization.resource-role-assignment.${uniqueString(aiFoundryAiServicesResourceName,containerAppResourceName,'Azure AI Developer')}'
-  params: {
-    roleName: 'Azure AI Developer'
-    roleDefinitionId: '64702f94-c441-49e6-a78b-ef80e0188fee'
-    principalId: containerApp.outputs.systemAssignedMIPrincipalId!
-    principalType: 'ServicePrincipal'
-    resourceId: aiFoundryAiServices.outputs.resourceId
-    enableTelemetry: enableTelemetry
-  }
-}
+// module resourceRoleAssignmentAiServicesAiDeveloper 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.2' = {
+//   name: 'avm.ptn.authorization.resource-role-assignment.${uniqueString(aiFoundryAiServicesResourceName,containerAppResourceName,'Azure AI Developer')}'
+//   params: {
+//     roleName: 'Azure AI Developer'
+//     roleDefinitionId: '64702f94-c441-49e6-a78b-ef80e0188fee'
+//     principalId: containerApp.outputs.systemAssignedMIPrincipalId!
+//     principalType: 'ServicePrincipal'
+//     resourceId: aiFoundryAiServices.outputs.resourceId
+//     enableTelemetry: enableTelemetry
+//   }
+// }
 
-module resourceRoleAssignmentAiServicesCognitiveServicesOpenAiUser 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.2' = {
-  name: 'avm.ptn.authorization.resource-role-assignment.${uniqueString(aiFoundryAiServicesResourceName,containerAppResourceName,'Cognitive Services OpenAI User')}'
-  params: {
-    roleName: 'Cognitive Services OpenAI User'
-    roleDefinitionId: '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd'
-    principalId: containerApp.outputs.systemAssignedMIPrincipalId!
-    principalType: 'ServicePrincipal'
-    resourceId: aiFoundryAiServices.outputs.resourceId
-    enableTelemetry: enableTelemetry
-  }
-}
+// module resourceRoleAssignmentAiServicesCognitiveServicesOpenAiUser 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.2' = {
+//   name: 'avm.ptn.authorization.resource-role-assignment.${uniqueString(aiFoundryAiServicesResourceName,containerAppResourceName,'Cognitive Services OpenAI User')}'
+//   params: {
+//     roleName: 'Cognitive Services OpenAI User'
+//     roleDefinitionId: '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd'
+//     principalId: containerApp.outputs.systemAssignedMIPrincipalId!
+//     principalType: 'ServicePrincipal'
+//     resourceId: aiFoundryAiServices.outputs.resourceId
+//     enableTelemetry: enableTelemetry
+//   }
+// }
 
 //Role assignments for AI Project
 module resourceRoleAssignmentAiServicesAiProjectAiUser 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.2' = {
@@ -932,7 +960,7 @@ module resourceRoleAssignmentAiServicesAiProjectAiUser 'br/public:avm/ptn/author
   params: {
     roleName: 'Azure AI User'
     roleDefinitionId: '53ca6127-db72-4b80-b1b0-d745d6d5456d'
-    principalId: containerApp.outputs.systemAssignedMIPrincipalId!
+    principalId: userAssignedIdentity.outputs.principalId
     principalType: 'ServicePrincipal'
     resourceId: aiFoundryAiServices.outputs.aiProjectResourceId
     enableTelemetry: enableTelemetry
@@ -944,7 +972,7 @@ module resourceRoleAssignmentAiServicesAiProjectAiDeveloper 'br/public:avm/ptn/a
   params: {
     roleName: 'Azure AI Developer'
     roleDefinitionId: '64702f94-c441-49e6-a78b-ef80e0188fee'
-    principalId: containerApp.outputs.systemAssignedMIPrincipalId!
+    principalId: userAssignedIdentity.outputs.principalId
     principalType: 'ServicePrincipal'
     resourceId: aiFoundryAiServices.outputs.aiProjectResourceId
     enableTelemetry: enableTelemetry
@@ -956,7 +984,7 @@ module resourceRoleAssignmentAiServicesAiProjectCognitiveServicesOpenAiUser 'br/
   params: {
     roleName: 'Cognitive Services OpenAI User'
     roleDefinitionId: '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd'
-    principalId: containerApp.outputs.systemAssignedMIPrincipalId!
+    principalId: userAssignedIdentity.outputs.principalId
     principalType: 'ServicePrincipal'
     resourceId: aiFoundryAiServices.outputs.aiProjectResourceId
     enableTelemetry: enableTelemetry
@@ -1017,7 +1045,7 @@ module cosmosDb 'br/public:avm/res/document-db/database-account:0.15.0' = {
           'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/*'
           'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/items/*'
         ]
-        assignments: [{ principalId: containerApp.outputs.systemAssignedMIPrincipalId! }]
+        assignments: [{ principalId: userAssignedIdentity.outputs.principalId }]
       }
     ]
     // WAF aligned configuration for Monitoring
@@ -1165,7 +1193,7 @@ module containerApp 'br/public:avm/res/app/container-app:0.18.1' = {
     location: solutionLocation
     enableTelemetry: enableTelemetry
     environmentResourceId: containerAppEnvironment.outputs.resourceId
-    managedIdentities: { systemAssigned: true }
+    managedIdentities: { userAssignedResourceIds: [userAssignedIdentity.outputs.resourceId] }
     ingressTargetPort: 8000
     ingressExternal: true
     activeRevisionsMode: 'Single'
