@@ -7,12 +7,17 @@ metadata description = '''This module contains the resources required to deploy 
 > **Note:** This module is not intended for broad, generic use, as it was designed by the Commercial Solution Areas CTO team, as a Microsoft Solution Accelerator. Feature requests and bug fix requests are welcome if they support the needs of this organization but may not be incorporated if they aim to make this module more generic than what it needs to be for its primary use case. This module will likely be updated to leverage AVM resource modules in the future. This may result in breaking changes in upcoming versions when these features are implemented.
 '''
 
-@description('Optional. The prefix to add in the default names given to all deployed Azure resources.')
-@maxLength(19)
-param solutionPrefix string = 'macae${uniqueString(deployer().objectId, deployer().tenantId, subscription().subscriptionId, resourceGroup().id)}'
+@description('Optional. A unique application/solution name for all resources in this deployment. This should be 3-16 characters long.')
+@minLength(3)
+@maxLength(16)
+param solutionName string = 'macae'
+
+@maxLength(5)
+@description('Optional. A unique text value for the solution. This is used to ensure resource names are unique for global resources. Defaults to a 5-character substring of the unique string generated from the subscription ID, resource group name, and solution name.')
+param solutionUniqueText string = take(uniqueString(subscription().id, resourceGroup().name, solutionName), 5)
 
 @description('Optional. Location for all Resources except AI Foundry.')
-param solutionLocation string = 'australiaeast'
+param location string = 'australiaeast'
 
 @description('Optional. Failover Location for applicable resources that allow failover. This location will apply if `enableScalability` is set to `true`. Check [Azure regions list](https://learn.microsoft.com/azure/reliability/regions-list) for more information on supported regions, and [Azure Database for MySQL Flexible Server - Azure Regions](https://learn.microsoft.com/azure/mysql/flexible-server/overview#azure-regions) for supported regions for CosmosDB.')
 param failoverLocation string = 'uksouth'
@@ -22,14 +27,12 @@ param replicaLocation string = 'australiasoutheast'
 
 // Restricting deployment to only supported Azure OpenAI regions validated with GPT-4o model
 @allowed(['australiaeast', 'eastus2', 'francecentral', 'japaneast', 'norwayeast', 'swedencentral', 'uksouth', 'westus'])
-@description('Optional. The location of OpenAI related resources. This should be one of the supported Azure OpenAI regions.')
-param azureOpenAILocation string = 'australiaeast'
+@metadata({ azd: { type: 'location' } })
+@description('Optional. Location for all AI service resources. This should be one of the supported Azure AI Service locations.')
+param azureAiServiceLocation string = 'australiaeast'
 
 @description('Optional. The tags to apply to all deployed Azure resources.')
-param tags resourceInput<'Microsoft.Resources/resourceGroups@2025-04-01'>.tags = {
-  app: solutionPrefix
-  location: solutionLocation
-}
+param tags resourceInput<'Microsoft.Resources/resourceGroups@2025-04-01'>.tags = {}
 
 @description('Optional. Enable monitoring applicable resources, aligned with the Well Architected Framework recommendations. This setting enables Application Insights and Log Analytics and configures all the resources applicable resources to send logs. Defaults to false.')
 param enableMonitoring bool = false
@@ -73,12 +76,18 @@ param frontendContainerImageTag string = 'latest_2025-07-22_895'
 param enableTelemetry bool = true
 
 // ============== //
+// Variables      //
+// ============== //
+
+var solutionPrefix = '${solutionName}${solutionUniqueText}'
+
+// ============== //
 // Resources      //
 // ============== //
 
 #disable-next-line no-deployments-resources
 resource avmTelemetry 'Microsoft.Resources/deployments@2024-03-01' = if (enableTelemetry) {
-  name: '46d3xbcp.ptn.sa-multiagentcustauteng.${replace('-..--..-', '.', '-')}.${substring(uniqueString(deployment().name, solutionLocation), 0, 4)}'
+  name: '46d3xbcp.ptn.sa-multiagentcustauteng.${replace('-..--..-', '.', '-')}.${substring(uniqueString(deployment().name, location), 0, 4)}'
   properties: {
     mode: 'Incremental'
     template: {
@@ -104,7 +113,7 @@ module logAnalyticsWorkspace 'br/public:avm/res/operational-insights/workspace:0
   params: {
     name: logAnalyticsWorkspaceResourceName
     tags: tags
-    location: solutionLocation
+    location: location
     enableTelemetry: enableTelemetry
     skuName: 'PerGB2018'
     dataRetention: 365
@@ -167,7 +176,7 @@ module applicationInsights 'br/public:avm/res/insights/component:0.6.0' = if (en
   params: {
     name: applicationInsightsResourceName
     tags: tags
-    location: solutionLocation
+    location: location
     enableTelemetry: enableTelemetry
     retentionInDays: 365
     kind: 'web'
@@ -186,7 +195,7 @@ module userAssignedIdentity 'br/public:avm/res/managed-identity/user-assigned-id
   name: take('avm.res.managed-identity.user-assigned-identity.${userAssignedIdentityResourceName}', 64)
   params: {
     name: userAssignedIdentityResourceName
-    location: solutionLocation
+    location: location
     tags: tags
     enableTelemetry: enableTelemetry
   }
@@ -200,7 +209,7 @@ module networkSecurityGroupBackend 'br/public:avm/res/network/network-security-g
   name: take('avm.res.network.network-security-group.${networkSecurityGroupBackendResourceName}', 64)
   params: {
     name: networkSecurityGroupBackendResourceName
-    location: solutionLocation
+    location: location
     tags: tags
     enableTelemetry: enableTelemetry
     diagnosticSettings: enableMonitoring ? [{ workspaceResourceId: logAnalyticsWorkspace!.outputs.resourceId }] : null
@@ -230,7 +239,7 @@ module networkSecurityGroupBastion 'br/public:avm/res/network/network-security-g
   name: take('avm.res.network.network-security-group.${networkSecurityGroupBastionResourceName}', 64)
   params: {
     name: networkSecurityGroupBastionResourceName
-    location: solutionLocation
+    location: location
     tags: tags
     enableTelemetry: enableTelemetry
     diagnosticSettings: enableMonitoring ? [{ workspaceResourceId: logAnalyticsWorkspace!.outputs.resourceId }] : null
@@ -386,7 +395,7 @@ module networkSecurityGroupAdministration 'br/public:avm/res/network/network-sec
   name: take('avm.res.network.network-security-group.${networkSecurityGroupAdministrationResourceName}', 64)
   params: {
     name: networkSecurityGroupAdministrationResourceName
-    location: solutionLocation
+    location: location
     tags: tags
     enableTelemetry: enableTelemetry
     diagnosticSettings: enableMonitoring ? [{ workspaceResourceId: logAnalyticsWorkspace!.outputs.resourceId }] : null
@@ -416,7 +425,7 @@ module networkSecurityGroupContainers 'br/public:avm/res/network/network-securit
   name: take('avm.res.network.network-security-group.${networkSecurityGroupContainersResourceName}', 64)
   params: {
     name: networkSecurityGroupContainersResourceName
-    location: solutionLocation
+    location: location
     tags: tags
     enableTelemetry: enableTelemetry
     diagnosticSettings: enableMonitoring ? [{ workspaceResourceId: logAnalyticsWorkspace!.outputs.resourceId }] : null
@@ -446,7 +455,7 @@ module networkSecurityGroupWebsite 'br/public:avm/res/network/network-security-g
   name: take('avm.res.network.network-security-group.${networkSecurityGroupWebsiteResourceName}', 64)
   params: {
     name: networkSecurityGroupWebsiteResourceName
-    location: solutionLocation
+    location: location
     tags: tags
     enableTelemetry: enableTelemetry
     diagnosticSettings: enableMonitoring ? [{ workspaceResourceId: logAnalyticsWorkspace!.outputs.resourceId }] : null
@@ -479,7 +488,7 @@ module virtualNetwork 'br/public:avm/res/network/virtual-network:0.7.0' = if (en
   name: take('avm.res.network.virtual-network.${virtualNetworkResourceName}', 64)
   params: {
     name: virtualNetworkResourceName
-    location: solutionLocation
+    location: location
     tags: tags
     enableTelemetry: enableTelemetry
     addressPrefixes: ['10.0.0.0/8']
@@ -536,7 +545,7 @@ module bastionHost 'br/public:avm/res/network/bastion-host:0.7.0' = if (enablePr
   name: take('avm.res.network.bastion-host.${bastionResourceName}', 64)
   params: {
     name: bastionResourceName
-    location: solutionLocation
+    location: location
     skuName: 'Standard'
     enableTelemetry: enableTelemetry
     tags: tags
@@ -562,7 +571,7 @@ module maintenanceConfiguration 'br/public:avm/res/maintenance/maintenance-confi
   name: take('avm.res.compute.virtual-machine.${maintenanceConfigurationResourceName}', 64)
   params: {
     name: maintenanceConfigurationResourceName
-    location: solutionLocation
+    location: location
     tags: tags
     enableTelemetry: enableTelemetry
     extensionProperties: {
@@ -601,7 +610,7 @@ module windowsVmDataCollectionRules 'br/public:avm/res/insights/data-collection-
     name: dataCollectionRulesResourceName
     tags: tags
     enableTelemetry: enableTelemetry
-    location: solutionLocation
+    location: location
     dataCollectionRuleProperties: {
       kind: 'Windows'
       dataSources: {
@@ -692,7 +701,7 @@ module proximityPlacementGroup 'br/public:avm/res/compute/proximity-placement-gr
   name: take('avm.res.compute.proximity-placement-group.${proximityPlacementGroupResourceName}', 64)
   params: {
     name: proximityPlacementGroupResourceName
-    location: solutionLocation
+    location: location
     tags: tags
     enableTelemetry: enableTelemetry
     availabilityZone: virtualMachineAvailabilityZone
@@ -707,7 +716,7 @@ module virtualMachine 'br/public:avm/res/compute/virtual-machine:0.17.0' = if (e
   name: take('avm.res.compute.virtual-machine.${virtualMachineResourceName}', 64)
   params: {
     name: virtualMachineResourceName
-    location: solutionLocation
+    location: location
     tags: tags
     enableTelemetry: enableTelemetry
     computerName: take(virtualMachineResourceName, 15)
@@ -847,7 +856,7 @@ module aiFoundryAiServices 'modules/ai-services.bicep' = if (aiFoundryAIservices
   name: take('avm.res.cognitive-services.account.${aiFoundryAiServicesResourceName}', 64)
   params: {
     name: aiFoundryAiServicesResourceName
-    location: azureOpenAILocation
+    location: azureAiServiceLocation
     tags: tags
     projectName: aiFoundryAiServicesAiProjectResourceName
     projectDescription: 'AI Foundry Project'
@@ -1018,7 +1027,7 @@ module cosmosDb 'br/public:avm/res/document-db/database-account:0.15.0' = {
   params: {
     // Required parameters
     name: cosmosDbResourceName
-    location: solutionLocation
+    location: location
     tags: tags
     enableTelemetry: enableTelemetry
     sqlDatabases: [
@@ -1077,7 +1086,7 @@ module cosmosDb 'br/public:avm/res/document-db/database-account:0.15.0' = {
           {
             failoverPriority: 0
             isZoneRedundant: true
-            locationName: solutionLocation
+            locationName: location
           }
           {
             failoverPriority: 1
@@ -1087,7 +1096,7 @@ module cosmosDb 'br/public:avm/res/document-db/database-account:0.15.0' = {
         ]
       : [
           {
-            locationName: solutionLocation
+            locationName: location
             failoverPriority: 0
           }
         ]
@@ -1102,7 +1111,7 @@ module containerAppEnvironment 'br/public:avm/res/app/managed-environment:0.11.2
   name: take('avm.res.app.managed-environment.${containerAppEnvironmentResourceName}', 64)
   params: {
     name: containerAppEnvironmentResourceName
-    location: solutionLocation
+    location: location
     tags: tags
     enableTelemetry: enableTelemetry
     // WAF aligned configuration for Private Networking
@@ -1158,7 +1167,7 @@ module privateEndpointContainerAppEnvironment 'br:mcr.microsoft.com/bicep/avm/re
   name: take('avm.res.network.private-endpoint.app-environment.${solutionPrefix}', 64)
   params: {
     name: 'pep-${containerAppEnvironmentResourceName}'
-    location: solutionLocation
+    location: location
     tags: tags
     enableTelemetry: enableTelemetry
     subnetResourceId: virtualNetwork!.outputs.subnetResourceIds[0]
@@ -1190,7 +1199,7 @@ module containerApp 'br/public:avm/res/app/container-app:0.18.1' = {
   params: {
     name: containerAppResourceName
     tags: tags
-    location: solutionLocation
+    location: location
     enableTelemetry: enableTelemetry
     environmentResourceId: containerAppEnvironment.outputs.resourceId
     managedIdentities: { userAssignedResourceIds: [userAssignedIdentity.outputs.resourceId] }
@@ -1321,7 +1330,7 @@ module webServerFarm 'br/public:avm/res/web/serverfarm:0.4.1' = {
     name: webServerFarmResourceName
     tags: tags
     enableTelemetry: enableTelemetry
-    location: solutionLocation
+    location: location
     reserved: true
     kind: 'linux'
     // WAF aligned configuration for Monitoring
@@ -1355,7 +1364,7 @@ module webSite 'modules/web-sites.bicep' = {
   params: {
     name: webSiteResourceName
     tags: tags
-    location: solutionLocation
+    location: location
     kind: 'app,linux,container'
     serverFarmResourceId: webServerFarm.?outputs.resourceId
     siteConfig: {
