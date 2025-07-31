@@ -208,7 +208,7 @@ module logAnalyticsWorkspace 'br/public:avm/res/operational-insights/workspace:0
 // ========== Application Insights ========== //
 // WAF best practices for Application Insights: https://learn.microsoft.com/en-us/azure/well-architected/service-guides/application-insights
 // WAF PSRules for  Application Insights: https://azure.github.io/PSRule.Rules.Azure/en/rules/resource/#application-insights
-var applicationInsightsResourceName = '${solutionSuffix}-appi'
+var applicationInsightsResourceName = 'appi-${solutionSuffix}'
 module applicationInsights 'br/public:avm/res/insights/component:0.6.0' = if (enableMonitoring) {
   name: take('avm.res.insights.component.${applicationInsightsResourceName}', 64)
   params: {
@@ -228,7 +228,7 @@ module applicationInsights 'br/public:avm/res/insights/component:0.6.0' = if (en
 
 // ========== User Assigned Identity ========== //
 // WAF best practices for identity and access management: https://learn.microsoft.com/en-us/azure/well-architected/security/identity-access
-var userAssignedIdentityResourceName = '${solutionSuffix}-uai'
+var userAssignedIdentityResourceName = 'id-${solutionSuffix}'
 module userAssignedIdentity 'br/public:avm/res/managed-identity/user-assigned-identity:0.4.1' = {
   name: take('avm.res.managed-identity.user-assigned-identity.${userAssignedIdentityResourceName}', 64)
   params: {
@@ -242,7 +242,7 @@ module userAssignedIdentity 'br/public:avm/res/managed-identity/user-assigned-id
 // ========== Network Security Groups ========== //
 // WAF best practices for virtual networks: https://learn.microsoft.com/en-us/azure/well-architected/service-guides/virtual-network
 // WAF recommendations for networking and connectivity: https://learn.microsoft.com/en-us/azure/well-architected/security/networking
-var networkSecurityGroupBackendResourceName = '${solutionSuffix}-nsg-backend'
+var networkSecurityGroupBackendResourceName = 'nsg-${solutionSuffix}-backend'
 module networkSecurityGroupBackend 'br/public:avm/res/network/network-security-group:0.5.1' = if (enablePrivateNetworking) {
   name: take('avm.res.network.network-security-group.${networkSecurityGroupBackendResourceName}', 64)
   params: {
@@ -272,7 +272,7 @@ module networkSecurityGroupBackend 'br/public:avm/res/network/network-security-g
   }
 }
 
-var networkSecurityGroupBastionResourceName = '${solutionSuffix}-nsg-bastion'
+var networkSecurityGroupBastionResourceName = 'nsg-${solutionSuffix}-bastion'
 module networkSecurityGroupBastion 'br/public:avm/res/network/network-security-group:0.5.1' = if (enablePrivateNetworking) {
   name: take('avm.res.network.network-security-group.${networkSecurityGroupBastionResourceName}', 64)
   params: {
@@ -428,7 +428,7 @@ module networkSecurityGroupBastion 'br/public:avm/res/network/network-security-g
   }
 }
 
-var networkSecurityGroupAdministrationResourceName = '${solutionSuffix}-nsg-administration'
+var networkSecurityGroupAdministrationResourceName = 'nsg-${solutionSuffix}-administration'
 module networkSecurityGroupAdministration 'br/public:avm/res/network/network-security-group:0.5.1' = if (enablePrivateNetworking) {
   name: take('avm.res.network.network-security-group.${networkSecurityGroupAdministrationResourceName}', 64)
   params: {
@@ -458,7 +458,7 @@ module networkSecurityGroupAdministration 'br/public:avm/res/network/network-sec
   }
 }
 
-var networkSecurityGroupContainersResourceName = '${solutionSuffix}-nsg-containers'
+var networkSecurityGroupContainersResourceName = 'nsg-${solutionSuffix}-containers'
 module networkSecurityGroupContainers 'br/public:avm/res/network/network-security-group:0.5.1' = if (enablePrivateNetworking) {
   name: take('avm.res.network.network-security-group.${networkSecurityGroupContainersResourceName}', 64)
   params: {
@@ -488,7 +488,7 @@ module networkSecurityGroupContainers 'br/public:avm/res/network/network-securit
   }
 }
 
-var networkSecurityGroupWebsiteResourceName = '${solutionSuffix}-nsg-website'
+var networkSecurityGroupWebsiteResourceName = 'nsg-${solutionSuffix}-website'
 module networkSecurityGroupWebsite 'br/public:avm/res/network/network-security-group:0.5.1' = if (enablePrivateNetworking) {
   name: take('avm.res.network.network-security-group.${networkSecurityGroupWebsiteResourceName}', 64)
   params: {
@@ -521,7 +521,7 @@ module networkSecurityGroupWebsite 'br/public:avm/res/network/network-security-g
 // ========== Virtual Network ========== //
 // WAF best practices for virtual networks: https://learn.microsoft.com/en-us/azure/well-architected/service-guides/virtual-network
 // WAF recommendations for networking and connectivity: https://learn.microsoft.com/en-us/azure/well-architected/security/networking
-var virtualNetworkResourceName = '${solutionSuffix}-vnet'
+var virtualNetworkResourceName = 'vnet-${solutionSuffix}'
 module virtualNetwork 'br/public:avm/res/network/virtual-network:0.7.0' = if (enablePrivateNetworking) {
   name: take('avm.res.network.virtual-network.${virtualNetworkResourceName}', 64)
   params: {
@@ -575,7 +575,7 @@ module virtualNetwork 'br/public:avm/res/network/virtual-network:0.7.0' = if (en
   }
 }
 
-var bastionResourceName = '${solutionSuffix}-bas'
+var bastionResourceName = 'bas-${solutionSuffix}'
 // ========== Bastion host ========== //
 // WAF best practices for virtual networks: https://learn.microsoft.com/en-us/azure/well-architected/service-guides/virtual-network
 // WAF recommendations for networking and connectivity: https://learn.microsoft.com/en-us/azure/well-architected/security/networking
@@ -604,7 +604,7 @@ module bastionHost 'br/public:avm/res/network/bastion-host:0.7.0' = if (enablePr
 
 // ========== Virtual machine ========== //
 // WAF best practices for virtual machines: https://learn.microsoft.com/en-us/azure/well-architected/service-guides/virtual-machines
-var maintenanceConfigurationResourceName = '${solutionSuffix}-mc'
+var maintenanceConfigurationResourceName = 'mc-${solutionSuffix}'
 module maintenanceConfiguration 'br/public:avm/res/maintenance/maintenance-configuration:0.3.1' = if (enablePrivateNetworking) {
   name: take('avm.res.compute.virtual-machine.${maintenanceConfigurationResourceName}', 64)
   params: {
@@ -641,7 +641,7 @@ module maintenanceConfiguration 'br/public:avm/res/maintenance/maintenance-confi
   }
 }
 
-var dataCollectionRulesResourceName = '${solutionSuffix}-dcr'
+var dataCollectionRulesResourceName = 'dcr-${solutionSuffix}'
 module windowsVmDataCollectionRules 'br/public:avm/res/insights/data-collection-rule:0.6.1' = if (enablePrivateNetworking && enableMonitoring) {
   name: take('avm.res.insights.data-collection-rule.${dataCollectionRulesResourceName}', 64)
   params: {
@@ -734,7 +734,7 @@ module windowsVmDataCollectionRules 'br/public:avm/res/insights/data-collection-
   }
 }
 
-var proximityPlacementGroupResourceName = '${solutionSuffix}-ppg'
+var proximityPlacementGroupResourceName = 'ppg-${solutionSuffix}'
 module proximityPlacementGroup 'br/public:avm/res/compute/proximity-placement-group:0.4.0' = if (enablePrivateNetworking) {
   name: take('avm.res.compute.proximity-placement-group.${proximityPlacementGroupResourceName}', 64)
   params: {
@@ -747,7 +747,7 @@ module proximityPlacementGroup 'br/public:avm/res/compute/proximity-placement-gr
   }
 }
 
-var virtualMachineResourceName = '${solutionSuffix}wvm'
+var virtualMachineResourceName = 'vm-${solutionSuffix}'
 var virtualMachineAvailabilityZone = 1
 var virtualMachineSize = 'Standard_D2s_v3'
 module virtualMachine 'br/public:avm/res/compute/virtual-machine:0.17.0' = if (enablePrivateNetworking) {
@@ -874,8 +874,8 @@ module privateDnsZonesAiServices 'br/public:avm/res/network/private-dns-zone:0.7
 ]
 
 // NOTE: Required version 'Microsoft.CognitiveServices/accounts@2024-04-01-preview' not available in AVM
-var aiFoundryAiServicesResourceName = '${solutionSuffix}-aisa'
-var aiFoundryAiServicesAiProjectResourceName = '${solutionSuffix}-aifp'
+var aiFoundryAiServicesResourceName = 'aif-${solutionSuffix}'
+var aiFoundryAiServicesAiProjectResourceName = 'proj-${solutionSuffix}'
 var aiFoundryAIservicesEnabled = true
 var aiFoundryAiServicesModelDeployment = {
   format: 'OpenAI'
@@ -964,43 +964,6 @@ module aiFoundryAiServices 'modules/ai-services.bicep' = if (aiFoundryAIservices
   }
 }
 
-//Role assignments for AI Foundry
-// module resourceRoleAssignmentAiServicesAiUser 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.2' = {
-//   name: 'avm.ptn.authorization.resource-role-assignment.${uniqueString(aiFoundryAiServicesResourceName,containerAppResourceName,'Azure AI User')}'
-//   params: {
-//     roleName: 'Azure AI User'
-//     roleDefinitionId: '53ca6127-db72-4b80-b1b0-d745d6d5456d'
-//     principalId: containerApp.outputs.systemAssignedMIPrincipalId!
-//     principalType: 'ServicePrincipal'
-//     resourceId: aiFoundryAiServices.outputs.resourceId
-//     enableTelemetry: enableTelemetry
-//   }
-// }
-
-// module resourceRoleAssignmentAiServicesAiDeveloper 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.2' = {
-//   name: 'avm.ptn.authorization.resource-role-assignment.${uniqueString(aiFoundryAiServicesResourceName,containerAppResourceName,'Azure AI Developer')}'
-//   params: {
-//     roleName: 'Azure AI Developer'
-//     roleDefinitionId: '64702f94-c441-49e6-a78b-ef80e0188fee'
-//     principalId: containerApp.outputs.systemAssignedMIPrincipalId!
-//     principalType: 'ServicePrincipal'
-//     resourceId: aiFoundryAiServices.outputs.resourceId
-//     enableTelemetry: enableTelemetry
-//   }
-// }
-
-// module resourceRoleAssignmentAiServicesCognitiveServicesOpenAiUser 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.2' = {
-//   name: 'avm.ptn.authorization.resource-role-assignment.${uniqueString(aiFoundryAiServicesResourceName,containerAppResourceName,'Cognitive Services OpenAI User')}'
-//   params: {
-//     roleName: 'Cognitive Services OpenAI User'
-//     roleDefinitionId: '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd'
-//     principalId: containerApp.outputs.systemAssignedMIPrincipalId!
-//     principalType: 'ServicePrincipal'
-//     resourceId: aiFoundryAiServices.outputs.resourceId
-//     enableTelemetry: enableTelemetry
-//   }
-// }
-
 //Role assignments for AI Project
 module resourceRoleAssignmentAiServicesAiProjectAiUser 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.2' = {
   name: 'avm.ptn.authorization.resource-role-assignment.${uniqueString(aiFoundryAiServicesAiProjectResourceName,containerAppResourceName,'Azure AI User')}'
@@ -1055,7 +1018,7 @@ module privateDnsZonesCosmosDb 'br/public:avm/res/network/private-dns-zone:0.7.1
   }
 }
 
-var cosmosDbResourceName = '${solutionSuffix}-cdb'
+var cosmosDbResourceName = 'cosmos-${solutionSuffix}'
 var cosmosDbDatabaseName = 'macae'
 var cosmosDbDatabaseMemoryContainerName = 'memory'
 
@@ -1129,7 +1092,7 @@ module cosmosDb 'br/public:avm/res/document-db/database-account:0.15.0' = {
           {
             failoverPriority: 1
             isZoneRedundant: true
-            locationName: failoverLocation
+            locationName: pairedLocation
           }
         ]
       : [
@@ -1144,7 +1107,7 @@ module cosmosDb 'br/public:avm/res/document-db/database-account:0.15.0' = {
 // ========== Backend Container App Environment ========== //
 // WAF best practices for container apps: https://learn.microsoft.com/en-us/azure/well-architected/service-guides/azure-container-apps
 // PSRule for Container App: https://azure.github.io/PSRule.Rules.Azure/en/rules/resource/#container-app
-var containerAppEnvironmentResourceName = '${solutionSuffix}-cae'
+var containerAppEnvironmentResourceName = 'cae-${solutionSuffix}'
 module containerAppEnvironment 'br/public:avm/res/app/managed-environment:0.11.2' = {
   name: take('avm.res.app.managed-environment.${containerAppEnvironmentResourceName}', 64)
   params: {
@@ -1231,7 +1194,7 @@ module privateEndpointContainerAppEnvironment 'br:mcr.microsoft.com/bicep/avm/re
 // ========== Backend Container App Service ========== //
 // WAF best practices for container apps: https://learn.microsoft.com/en-us/azure/well-architected/service-guides/azure-container-apps
 // PSRule for Container App: https://azure.github.io/PSRule.Rules.Azure/en/rules/resource/#container-app
-var containerAppResourceName = '${solutionSuffix}-ca'
+var containerAppResourceName = 'ca-${solutionSuffix}'
 module containerApp 'br/public:avm/res/app/container-app:0.18.1' = {
   name: take('avm.res.app.container-app.${containerAppResourceName}', 64)
   params: {
@@ -1361,7 +1324,7 @@ module containerApp 'br/public:avm/res/app/container-app:0.18.1' = {
 // ========== Frontend server farm ========== //
 // WAF best practices for Web Application Services: https://learn.microsoft.com/en-us/azure/well-architected/service-guides/app-service-web-apps
 // PSRule for Web Server Farm: https://azure.github.io/PSRule.Rules.Azure/en/rules/resource/#app-service
-var webServerFarmResourceName = '${solutionSuffix}-asp'
+var webServerFarmResourceName = 'asp-${solutionSuffix}'
 module webServerFarm 'br/public:avm/res/web/serverfarm:0.4.1' = {
   name: take('avm.res.web.serverfarm.${webServerFarmResourceName}', 64)
   params: {
@@ -1396,7 +1359,7 @@ module privateDnsZonesWebApp 'br/public:avm/res/network/private-dns-zone:0.7.1' 
 }
 
 //NOTE: AVM module adds 1 MB of overhead to the template. Keeping vanilla resource to save template size.
-var webSiteResourceName = '${solutionSuffix}-wap'
+var webSiteResourceName = 'app-${solutionSuffix}'
 module webSite 'modules/web-sites.bicep' = {
   name: take('module.web-sites.${webSiteResourceName}', 64)
   params: {
