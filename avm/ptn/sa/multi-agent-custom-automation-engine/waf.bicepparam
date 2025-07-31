@@ -1,6 +1,6 @@
 using 'main.bicep'
 
-param solutionPrefix = 'macaewaf02'
+param solutionName = 'macaewaf02'
 param enableMonitoring = true
 param enablePrivateNetworking = true
 param enableRedundancy = true
