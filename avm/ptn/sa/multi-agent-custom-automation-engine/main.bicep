@@ -89,24 +89,24 @@ param enableTelemetry bool = true
 var solutionSuffix = '${solutionName}${solutionUniqueText}'
 
 // Region pairs list based on article in [Azure regions list](https://learn.microsoft.com/azure/reliability/regions-list)
-var azureRegionPairs = {
-  australiaeast: 'australiasoutheast'
-  centralus: 'eastus2'
-  eastasia: 'southeastasia'
-  eastus: 'centralus'
-  eastus2: 'centralus'
-  japaneast: 'japanwest'
-  northeurope: 'westeurope'
-  southeastasia: 'eastasia'
-  uksouth: 'ukwest'
-  westeurope: 'northeurope'
-}
-// Paired location calculated based on 'location' parameter. This location will be used by applicable resources if `enableScalability` is set to `true`
-var pairedLocation = azureRegionPairs[location]
+// var azureRegionPairs = {
+//   australiaeast: 'australiasoutheast'
+//   centralus: 'eastus2'
+//   eastasia: 'southeastasia'
+//   eastus: 'centralus'
+//   eastus2: 'centralus'
+//   japaneast: 'japanwest'
+//   northeurope: 'westeurope'
+//   southeastasia: 'eastasia'
+//   uksouth: 'ukwest'
+//   westeurope: 'northeurope'
+// }
+// // Paired location calculated based on 'location' parameter. This location will be used by applicable resources if `enableScalability` is set to `true`
+// var pairedLocation = azureRegionPairs[location]
 
 // Region pairs list based on article in [Azure Database for MySQL Flexible Server - Azure Regions](https://learn.microsoft.com/azure/mysql/flexible-server/overview#azure-regions) for supported high availability regions for CosmosDB.
-var cosmosDbZoneRedundantHARegionPairs = {
-  australiaeast: 'japaneast'
+var cosmosDbZoneRedundantHaRegionPairs = {
+  australiaeast: 'uksouth' //'southeastasia'
   centralus: 'eastus2'
   eastasia: 'southeastasia'
   eastus: 'centralus'
@@ -118,7 +118,7 @@ var cosmosDbZoneRedundantHARegionPairs = {
   westeurope: 'northeurope'
 }
 // Paired location calculated based on 'location' parameter. This location will be used by applicable resources if `enableScalability` is set to `true`
-var cosmosDbHaLocation = cosmosDbZoneRedundantHARegionPairs[location]
+var cosmosDbHaLocation = cosmosDbZoneRedundantHaRegionPairs[location]
 
 // Replica regions list based on article in [Azure regions list](https://learn.microsoft.com/azure/reliability/regions-list) and [Enhance resilience by replicating your Log Analytics workspace across regions](https://learn.microsoft.com/azure/azure-monitor/logs/workspace-replication#supported-regions) for supported regions for Log Analytics Workspace.
 var replicaRegionPairs = {
@@ -1341,7 +1341,7 @@ module containerApp 'br/public:avm/res/app/container-app:0.18.1' = {
 // WAF best practices for Web Application Services: https://learn.microsoft.com/en-us/azure/well-architected/service-guides/app-service-web-apps
 // PSRule for Web Server Farm: https://azure.github.io/PSRule.Rules.Azure/en/rules/resource/#app-service
 var webServerFarmResourceName = 'asp-${solutionSuffix}'
-module webServerFarm 'br/public:avm/res/web/serverfarm:0.4.1' = {
+module webServerFarm 'br/public:avm/res/web/serverfarm:0.5.0' = {
   name: take('avm.res.web.serverfarm.${webServerFarmResourceName}', 64)
   params: {
     name: webServerFarmResourceName
