@@ -121,7 +121,7 @@ var cosmosDbZoneRedundantHaRegionPairs = {
 var cosmosDbHaLocation = cosmosDbZoneRedundantHaRegionPairs[location]
 
 // Replica regions list based on article in [Azure regions list](https://learn.microsoft.com/azure/reliability/regions-list) and [Enhance resilience by replicating your Log Analytics workspace across regions](https://learn.microsoft.com/azure/azure-monitor/logs/workspace-replication#supported-regions) for supported regions for Log Analytics Workspace.
-var replicaRegionPairs = {
+var logAnalyticsReplicaRegionPairs = {
   australiaeast: 'australiasoutheast'
   centralus: 'westus'
   eastasia: 'japaneast'
@@ -133,7 +133,8 @@ var replicaRegionPairs = {
   uksouth: 'westeurope'
   westeurope: 'northeurope'
 }
-var replicaLocation = replicaRegionPairs[location]
+// Paired location calculated based on 'location' parameter. This location will be used by applicable resources if `enableRedundancy` is set to `true`
+var logAnalyticsReplicaLocation = logAnalyticsReplicaRegionPairs[location]
 
 // ============== //
 // Resources      //
@@ -178,7 +179,7 @@ module logAnalyticsWorkspace 'br/public:avm/res/operational-insights/workspace:0
     replication: enableRedundancy
       ? {
           enabled: true
-          location: replicaLocation
+          location: logAnalyticsReplicaLocation
         }
       : null
     // WAF aligned configuration for Private Networking
@@ -1141,7 +1142,7 @@ module containerAppEnvironment 'br/public:avm/res/app/managed-environment:0.11.2
           destination: 'log-analytics'
           logAnalyticsConfiguration: {
             customerId: logAnalyticsWorkspace!.outputs.logAnalyticsWorkspaceId
-            sharedKey: logAnalyticsWorkspace!.outputs.primarySharedKey
+            sharedKey: logAnalyticsWorkspace!.outputs!.primarySharedKey
           }
         }
       : null
