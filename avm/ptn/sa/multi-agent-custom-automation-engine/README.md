@@ -96,10 +96,68 @@ The following section provides usage examples for the module, which were used to
 
 >**Note**: To reference the module, please use the following syntax `br/public:avm/ptn/sa/multi-agent-custom-automation-engine:<version>`.
 
-- [Default configuration with WAF aligned parameter values](#example-1-default-configuration-with-waf-aligned-parameter-values)
-- [Default configuration with default parameter values](#example-2-default-configuration-with-default-parameter-values)
+- [Default configuration with default parameter values](#example-1-default-configuration-with-default-parameter-values)
+- [Default configuration with WAF aligned parameter values](#example-2-default-configuration-with-waf-aligned-parameter-values)
 
-### Example 1: _Default configuration with WAF aligned parameter values_
+### Example 1: _Default configuration with default parameter values_
+
+This instance deploys the [Multi-Agent Custom Automation Engine solution accelerator](https://github.com/microsoft/Multi-Agent-Custom-Automation-Engine-Solution-Accelerator) using only the required parameters. Optional parameters will take the default values, which are designed for Sandbox environments.
+
+
+<details>
+
+<summary>via Bicep module</summary>
+
+```bicep
+module multiAgentCustomAutomationEngine 'br/public:avm/ptn/sa/multi-agent-custom-automation-engine:<version>' = {
+  name: 'multiAgentCustomAutomationEngineDeployment'
+  params: {
+    location: '<location>'
+    solutionName: 'macaemin'
+  }
+}
+```
+
+</details>
+<p>
+
+<details>
+
+<summary>via JSON parameters file</summary>
+
+```json
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": {
+      "value": "<location>"
+    },
+    "solutionName": {
+      "value": "macaemin"
+    }
+  }
+}
+```
+
+</details>
+<p>
+
+<details>
+
+<summary>via Bicep parameters file</summary>
+
+```bicep-params
+using 'br/public:avm/ptn/sa/multi-agent-custom-automation-engine:<version>'
+
+param location = '<location>'
+param solutionName = 'macaemin'
+```
+
+</details>
+<p>
+
+### Example 2: _Default configuration with WAF aligned parameter values_
 
 This instance deploys the [Multi-Agent Custom Automation Engine solution accelerator](https://github.com/microsoft/Multi-Agent-Custom-Automation-Engine-Solution-Accelerator) using parameters that deploy the [WAF aligned](https://learn.microsoft.com/azure/well-architected/) configuration.
 
@@ -117,7 +175,8 @@ module multiAgentCustomAutomationEngine 'br/public:avm/ptn/sa/multi-agent-custom
     enableRedundancy: true
     enableScalability: true
     enableTelemetry: true
-    solutionPrefix: 'macaewaf'
+    location: '<location>'
+    solutionName: 'macaewaf'
     virtualMachineAdminPassword: '<virtualMachineAdminPassword>'
     virtualMachineAdminUsername: 'adminuser'
   }
@@ -151,7 +210,10 @@ module multiAgentCustomAutomationEngine 'br/public:avm/ptn/sa/multi-agent-custom
     "enableTelemetry": {
       "value": true
     },
-    "solutionPrefix": {
+    "location": {
+      "value": "<location>"
+    },
+    "solutionName": {
       "value": "macaewaf"
     },
     "virtualMachineAdminPassword": {
@@ -179,62 +241,10 @@ param enablePrivateNetworking = true
 param enableRedundancy = true
 param enableScalability = true
 param enableTelemetry = true
-param solutionPrefix = 'macaewaf'
+param location = '<location>'
+param solutionName = 'macaewaf'
 param virtualMachineAdminPassword = '<virtualMachineAdminPassword>'
 param virtualMachineAdminUsername = 'adminuser'
-```
-
-</details>
-<p>
-
-### Example 2: _Default configuration with default parameter values_
-
-This instance deploys the [Multi-Agent Custom Automation Engine solution accelerator](https://github.com/microsoft/Multi-Agent-Custom-Automation-Engine-Solution-Accelerator) using only the required parameters. Optional parameters will take the default values, which are designed for Sandbox environments.
-
-
-<details>
-
-<summary>via Bicep module</summary>
-
-```bicep
-module multiAgentCustomAutomationEngine 'br/public:avm/ptn/sa/multi-agent-custom-automation-engine:<version>' = {
-  name: 'multiAgentCustomAutomationEngineDeployment'
-  params: {
-    solutionPrefix: 'macaemin'
-  }
-}
-```
-
-</details>
-<p>
-
-<details>
-
-<summary>via JSON parameters file</summary>
-
-```json
-{
-  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
-  "contentVersion": "1.0.0.0",
-  "parameters": {
-    "solutionPrefix": {
-      "value": "macaemin"
-    }
-  }
-}
-```
-
-</details>
-<p>
-
-<details>
-
-<summary>via Bicep parameters file</summary>
-
-```bicep-params
-using 'br/public:avm/ptn/sa/multi-agent-custom-automation-engine:<version>'
-
-param solutionPrefix = 'macaemin'
 ```
 
 </details>
@@ -441,22 +451,24 @@ This section gives you an overview of all local-referenced module files (i.e., o
 
 | Reference | Type |
 | :-- | :-- |
+| `br:mcr.microsoft.com/bicep/avm/res/network/private-endpoint:0.11.0` | Remote reference |
 | `br/public:avm/ptn/authorization/resource-role-assignment:0.1.2` | Remote reference |
-| `br/public:avm/res/app/container-app:0.17.0` | Remote reference |
+| `br/public:avm/res/app/container-app:0.18.1` | Remote reference |
 | `br/public:avm/res/app/managed-environment:0.11.2` | Remote reference |
-| `br/public:avm/res/compute/proximity-placement-group:0.3.2` | Remote reference |
-| `br/public:avm/res/compute/virtual-machine:0.15.0` | Remote reference |
+| `br/public:avm/res/compute/proximity-placement-group:0.4.0` | Remote reference |
+| `br/public:avm/res/compute/virtual-machine:0.17.0` | Remote reference |
 | `br/public:avm/res/document-db/database-account:0.15.0` | Remote reference |
 | `br/public:avm/res/insights/component:0.6.0` | Remote reference |
-| `br/public:avm/res/insights/data-collection-rule:0.6.0` | Remote reference |
+| `br/public:avm/res/insights/data-collection-rule:0.6.1` | Remote reference |
 | `br/public:avm/res/maintenance/maintenance-configuration:0.3.1` | Remote reference |
-| `br/public:avm/res/network/bastion-host:0.6.1` | Remote reference |
+| `br/public:avm/res/managed-identity/user-assigned-identity:0.4.1` | Remote reference |
+| `br/public:avm/res/network/bastion-host:0.7.0` | Remote reference |
 | `br/public:avm/res/network/network-security-group:0.5.1` | Remote reference |
 | `br/public:avm/res/network/private-dns-zone:0.7.1` | Remote reference |
 | `br/public:avm/res/network/private-endpoint:0.11.0` | Remote reference |
 | `br/public:avm/res/network/virtual-network:0.7.0` | Remote reference |
-| `br/public:avm/res/operational-insights/workspace:0.11.2` | Remote reference |
-| `br/public:avm/res/web/serverfarm:0.4.1` | Remote reference |
+| `br/public:avm/res/operational-insights/workspace:0.12.0` | Remote reference |
+| `br/public:avm/res/web/serverfarm:0.5.0` | Remote reference |
 | `br/public:avm/utl/types/avm-common-types:0.5.1` | Remote reference |
 
 ## Data Collection
